@@ -1,271 +1,66 @@
-<!DOCTYPE HTML>
-<!--
-    Lala Ray portfolio - Interactive CV
--->
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Lala Ray Portfolio</title>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-        <meta name="description" content="Lala Shakti Swarup Ray's interactive CV and portfolio">
-        <meta name="author" content="Lala Ray">
-        <meta property="og:title" content="Lala Ray Portfolio">
-        <meta property="og:description" content="Lala Shakti Swarup Ray's interactive CV and portfolio">
-        <meta property="og:image" content="path/to/your/image.jpg">
-        <meta property="og:url" content="URL-of-your-portfolio">
-        <link rel="stylesheet" href="assets/css/main.css" />
-		
-        <noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
-    </head>
-    <body class="is-preload">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Three.js Working Example</title>
+  <style>
+    body { margin:0; overflow:hidden; background:#111; }
+    #info { position:absolute; top:20px; left:20px; color:white; font-family:sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <h1>Your Name</h1>
+    <p>3D Simulation • Embedded AI • Motion Understanding</p>
+  </div>
 
-        <!-- Sidebar -->
-        <section id="sidebar">
-            <div class="inner">
-                <nav>
-                    <ul>
-                        <li><a href="#intro">About Me</a></li>
-                        <li><a href="#one">Education, Experience & Skills</a></li>
-                        <li><a href="#two">Publications & collaborations</a></li>
-						<li><a href="#three">Awards</a></li>
-                        <li><a href="#four">Get in touch</a></li>
-                    </ul>
-                </nav>
-            </div>
-        </section>
+  <!-- Use ES Modules via CDN -->
+  <script type="module">
+    // IMPORTANT: ABSOLUTE URLS
+    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+    import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-        <!-- Wrapper -->
-        <div id="wrapper">
-            
-            <!-- Intro -->
-            <section id="intro" class="wrapper style2 fullscreen fade-up">
-                <div class="inner">
-                    <h1>Lala Shakti Swarup Ray</h1>
-                    <p style="font-size:22px">I am a <strong>PhD researcher</strong> at Embedded Intelligence Lab in German Research Center of Artificial Intelligence (<strong>DFKI</strong>), Kaiserslautern.</p>
-                    <p style="font-size:18px"><strong>Domain:</strong> Computer Graphics/Simulation, Sensors, AI</p>
-                    <p><br></p>
-                    <ul class="actions">
-                        <li><a href="#four" class="button scrolly">Contact Me</a></li>
-                    </ul>
-                </div>
-            </section>
-            
-            <!-- One -->
-            <section id="one" class="wrapper style1 fullscreen fade-up">
-                <div class="inner">
-                    <strong style="font-size:22px">Education</strong>
-                    <ul>
-                        <li style="font-size:18px"><strong>PhD. </strong> RPTU Kaiserslautern, Germany<br>Thesis Title: <i>Elevating sHAR with Simulations and Cross-Modal Insights.</i><br> 2023 - Present</li>
-                        <li style="font-size:18px"><strong>M.Sc. Informatik </strong>(Major: Intelligent systems, Minor: Robotics) TU Kaiserslautern, Germany<br>(Thesis) Deutsches Forschungszentrum für Künstliche Intelligenz, Kaiserslautern <br>Thesis Title: <i>Inferring contact pressure matrix from videos using neural networks and physics simulations.</i><br> 2019 - 2022</li>
-                        <li style="font-size:18px"><strong>B.Tech. Computer Engineering</strong> IGIT Sarang, India<br>Thesis Title: <i>Mobile VR Application to treat phobias.</i><br> 2014 - 2018</li>
-                    </ul>
-                    
-                    <strong style="font-size:22px">Work Experience</strong>
-                    <ul>
-                        <li style="font-size:18px"><b>PhD Researcher</b>, Embedded Intelligence Group, Deutsches Forschungszentrum für Künstliche Intelligenz, Kaiserslautern, December 2022 - Present</li>
-                        <li style="font-size:18px"><b>Junior Researcher</b>, Embedded Intelligence Group, Deutsches Forschungszentrum für Künstliche Intelligenz, Kaiserslautern, July 2022 - November 2022</li>
-                        <li style="font-size:18px"><b>Research Assistant</b>, Image Processing Group, Fraunhofer-Institut für Techno- und Wirtschaftsmathematik, Kaiserslautern, November 2021 - June 2022</li>
-                        <li style="font-size:18px"><b>Research Assistant</b>, Augmented Vision Group, Deutsches Forschungszentrum für Künstliche Intelligenz, Kaiserslautern, October 2020 - June 2022</li>
-                        <li style="font-size:18px"><b>Technical Internship</b>, Autonomous Driving Group, Zummit Infolabs LLP, Munich, July 2021 - October 2021</li>
-                        <li style="font-size:18px"><b>Research Internship</b>, Electronics & Telecommunication Department, IIT Guwahati, April 2017 - July 2017</li>
-                    </ul>
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x111111);
 
-                    <strong style="font-size:22px">Supervision Experience</strong>
-                    <ul>
-                        <li style="font-size:18px"><strong>Yunmin Cho</strong>, M.Sc., RPTU Kaiserslautern Thesis: Cloth-Human-Attribute Guided Virtual Try-On Network.</li>
-                        <li style="font-size:18px"><strong>Shazib Rauf Satti</strong>, M.Sc., RPTU Kaiserslautern Thesis: Unsupervised 3D Pose Estimation using Spatial-Temporal Transformer with Temporal and Biomechanical Constraints.</li>
-                        <li style="font-size:18px"><strong>Jaspreet Singh</strong>, M.Sc., RPTU Kaiserslautern Thesis: Sensor based hand gesture recognition.</li>
-                        <li style="font-size:18px"><strong>Dennis Schneider</strong>, M.Sc., RPTU Kaiserslautern Thesis: Enhancing Video Captioning Models with Motion-Grounded Synthetic Data Augmentation.</li>
-                        <li style="font-size:18px"><strong>Sana Parveen</strong>, M.Sc., RPTU Kaiserslautern Thesis: Openvocabulary 3D motion generation from text for ASL.</li>
-                    </ul>
+    const camera = new THREE.PerspectiveCamera(
+      60,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    camera.position.set(0, 1, 3);
 
-                    <strong style="font-size:22px">Organiser Experience</strong>
-                    <ul>
-                        <li style="font-size:18px"><strong>Program Commitee</strong> , <a href="https://mcmi2024.unikore.it/about.html" style="font-size:18px">Multi- and Cross-Modal Information
-							for Enhanced Pattern Recognition 2024(<strong>MCMI 2024</strong>)</a></li>
-                    </ul>
-                
-            
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-					<strong style="font-size:22px">Technical Skills</strong>
-					<ul>
-						<li style="font-size:18px"><strong>Languages</strong>: Python, JavaScript / TypeScript, C++.</li>
-						<li style="font-size:18px"><strong>3D Tools / Frameworks</strong>: Blender, Unity3D, Pytorch3D, PyBullet, Three.js.</li>
-						<li style="font-size:18px"><strong>AI Tools / Frameworks</strong>: Tensorflow, Tensorflow.js, Pytorch, Pytorch geometric, Keras.</li>
-						<li style="font-size:18px"><strong>AI Models</strong>: MLP, CNN, LSTM, Transformer, GNN, PINN, Quantum neural network, Multimodal learning, Multitask learning, Contrastive learning, Supervised learning, Self-supervised learning, LLM cross-modal learning, Simulation assisted learning, Generative AI, Foundational model.</li>
-						<li style="font-size:18px"><strong>Other</strong>: Git, GitLab, CUDA, Docker.</li>
-					</ul>
+    const controls = new OrbitControls(camera, renderer.domElement);
 
-					<strong style="font-size:22px">Language Skills</strong>
-					<ul>
-						<li style="font-size:18px"><strong>English</strong>: Fluent</li>
-						<li style="font-size:18px"><strong>German</strong>: Intermediate</li>
-						<li style="font-size:18px"><strong>Hindi</strong>: Fluent</li>
-						<li style="font-size:18px"><strong>Odia</strong>: Native</li>
-					</ul>
-				</div>
-			</section>
-            <!-- Two -->
-            <section id="two" class="wrapper style2 fullscreen fade-up">
-                <div class="inner">
-                    <section>
-                        <strong style="font-size:22px">Journal Proceedings</strong>
-                        <ul>
-							<li id="paper2" style="font-size:18px"><p><b>A comprehensive evaluation of marker-based, markerless methods for loose garment scenarios in varying camera configurations</b><br/>
-                                <a href="https://www.frontiersin.org/articles/10.3389/fcomp.2024.1379925/full" style="font-size:13px"><b>Lala Shakti Swarup Ray</b>,  Bo Zhou, Sungho Suh, and Paul Lukowicz. <b>Frontiers in Computer Science, vol. 6, p. 1 379 925, 2024</b></a>
-                                </p>
-                            </li>
-                            <li id="paper1" style="font-size:18px"><p><b>Analysis of Attention Level of Human Body in Different Forms</b><br/>
-                                <a href="https://link.springer.com/chapter/10.1007/978-981-13-1501-5_3" style="font-size:13px">Ankit Anand, <b>Lala Shakti Swarup Ray</b>, Ramesh K. Sahoo, and Srinivas Sethi. <b>Emerging Technologies in Data Mining and Information Security IEMIS 2018, Volume 3</b> (<b>2018</b>): 23-32.</b></a>
-                                </p>
-                            </li>
-                        </ul>
-                    </section>
-					<section>
-                        <strong style="font-size:22px">Conference Proceedings</strong>
-						<ul>
-							<li id="conf6" style="font-size:18px"><p><b>iMove: Exploring bio-impedance sensing for fitness activity recognition</b><br/>
-                                <a href="https://www.frontiersin.org/articles/10.3389/fcomp.2024.1379925/full" style="font-size:13px">Mengxi Liu, Vitor Fortes Rey, Yu Zhang, <b>Lala Shakti Swarup Ray</b>, Bo Zhou, Paul Lukowicz. <b>2024 IEEE International Conference on Pervasive Computing and Communications (PerCom), Biarritz, France, 2024, pp. 194-205.</b></a>
-                                </p>
-                            </li>
-                            <li id="conf5" style="font-size:18px"><p><b>A novel local-global feature fusion framework for body-weight exercise recognition with pressure mapping sensors</b><br/>
-                                <a href="https://link.springer.com/chapter/10.1007/978-981-13-1501-5_3" style="font-size:13px">Davinder Pal Singh, <b>Lala Shakti Swarup Ray</b>, Bo Zhou, Sungho Suh, Paul Lukowicz. <b>ICASSP 2024 - 2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Seoul, Korea, Republic of, 2024, pp. 6375-6379.</b></a>
-                                </p>
-                            </li>
-							<li id="conf4" style="font-size:18px"><p><b>Clothfit: Cloth-human-attribute guided virtual try-on network using 3d simulated dataset</b><br/>
-								<a href="https://link.springer.com/chapter/10.1007/978-981-13-1501-5_3" style="font-size:13px">Yunmin Cho, <b>Lala Shakti Swarup Ray</b>, Kundan Sai Prabhu Thota, Sungho Suh, Paul Lukowicz. <b>2023 IEEE International Conference on Image Processing (ICIP), Kuala Lumpur, Malaysia, 2023, pp. 3484-3488.</b></a>
-								</p>
-							</li>
-							<li id="conf3" style="font-size:18px"><p><b>Selecting the motion ground truth for loose-fitting	wearables: Benchmarking optical mocap methods</b><br/>
-								<a href="https://link.springer.com/chapter/10.1007/978-981-13-1501-5_3" style="font-size:13px"><b>Lala Shakti Swarup Ray</b>, Bo Zhou, Sungho Suh, Paul Lukowicz. <b>2023 ACM International Symposium on Wearable Computers (ISWC '23). Association for Computing Machinery, New York, NY, USA, 27-32.</b></a>
-								</p>
-							</li>
-							<li id="conf2" style="font-size:18px"><p><b>PressureTransferNet: Human Attribute Guided Dynamic Ground Pressure Profile Transfer using 3D simulated Pressure Maps</b><br/>
-								<a href="https://link.springer.com/chapter/10.1007/978-981-13-1501-5_3" style="font-size:13px"><b>Lala Shakti Swarup Ray</b>, Vitor Fortes Rey, Bo Zhou, Sungho Suh, Paul Lukowicz. <b>2023 Activity and Behavior Computing (ABC 2023), Kaiserslautern, Germany.</b></a>
-								</p>
-							</li>
-							<li id="conf1" style="font-size:18px"><p><b>Mocapose: Motion capturing with textile-integrated capacitive sensors in loose-fitting smart garments</b><br/>
-								<a href="https://link.springer.com/chapter/10.1007/978-981-13-1501-5_3" style="font-size:13px">Bo Zhou, Daniel Geissler, Marc Faulhaber, Clara Elisabeth Gleiss, Esther Friederike Zahn, <b>Lala Shakti Swarup Ray</b>, David Gamarra, Vitor Fortes Rey, Sungho Suh, Sizhen Bian, Gesche Joost, and Paul Lukowicz. <b>Proc. ACM Interact. Mob. Wearable Ubiquitous Technol. 7, 1, Article 41.</b></a>
-								</p>
-							</li>
-                        </ul>
-                    </section>
-					<section>
-                        <strong style="font-size:22px">Adjunct Proceedings</strong>
-                        <ul>
-                            <li id="conf5" style="font-size:18px"><p><b>Text me the data: Generating Ground Pressure Sequence from Textual Descriptions for HAR</b><br/>
-                                <a href="https://www.frontiersin.org/articles/10.3389/fcomp.2024.1379925/full" style="font-size:13px"><b>Lala Shakti Swarup Ray</b> Bo Zhou, Sungho Suh, Lars Krupp, Vitor Fortes Rey, Paul Lukowicz. <b>Frontiers in Computer Science, vol. 6, p. 1 379 925, 2024</b></a>
-                                </p>
-                            </li>
-							<li id="demo4" style="font-size:16px"><p><b>Moca’collection: Normalizing dynamic textile geometry with capacitive sensing in design centric wearables</b><br/>
-                                <a href="https://3dvconf.github.io/2022/demos/" style="font-size:13px"><b>Lala Shakti Swarup Ray</b> Sungho Suh, Bo Zhou, and Paul Lukowicz.</a>
-                                </p>
-                            </li>
-							<li id="demo3" style="font-size:16px"><p><b>Capafoldable: Self-tracking foldable smart textiles with capacitive sensing</b><br/>
-                                <a href="https://3dvconf.github.io/2022/demos/" style="font-size:13px"><b>Lala Shakti Swarup Ray</b>, Sungho Suh, Bo Zhou, and Paul Lukowicz.</a>
-                                </p>
-                            </li>
-							<li id="demo2" style="font-size:16px"><p><b> Pressim: An end-to-end framework for dynamic ground pressure profile generation from monocular videos using physics-based 3d simulation</b><br/>
-                                <a href="https://3dvconf.github.io/2022/demos/" style="font-size:13px"><b>Lala Shakti Swarup Ray</b> Sungho Suh, Bo Zhou, and Paul Lukowicz.</a>
-                                </p>
-                            </li>
-                            <li id="demo1" style="font-size:16px"><p><b>Web application to generate synthetic geometric camera calibration dataset for stereo cameras</b><br/>
-                                <a href="https://3dvconf.github.io/2022/demos/" style="font-size:13px"><b>Lala Shakti Swarup Ray</b> Sungho Suh, Bo Zhou, and Paul Lukowicz.</a>
-                                </p>
-                            </li>
-                        </ul>
-                    </section>
-					<section>
-                        <strong style="font-size:22px">Industry collaborations</strong>
-						<ul>
-							<li style="font-size:18px"><strong>Deihl GmbH</strong>: Generating Sythetic dataset for training a flight PoV object intruder detection & tracking model.</li>
-							<li style="font-size:18px"><strong>Parts GmbH</strong>: Training a PINN netowrk to gnerate Flow of injected fluids for different mold shapes. </li>
-						</ul>
-					</section>
-                </div>
-            </section>
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(2, 2, 2);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0x404040));
 
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshNormalMaterial();
+    const cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
 
-			<!-- Three -->
-            <section id="three" class="wrapper style1 fullscreen fade-up">
-                <div class="inner">
-					<section>
-						<strong style="font-size:22px">Proceedings</strong>
-                        <ul>
-							<li style="font-size:18px"><strong>Best WIP Runners-up Award</strong>: Generating Sythetic dataset for training a flight PoV object intruder detection & tracking model.</li>
-							<li style="font-size:18px"><strong>Best Paper Award</strong>: Training a PINN netowrk to gnerate Flow of injected fluids for different mold shapes. </li>
-							<li style="font-size:18px"><strong>Excellent Paper Award</strong>: Training a PINN netowrk to gnerate Flow of injected fluids for different mold shapes. </li>
-							<li style="font-size:18px"><strong>Best Paper Award</strong>: Training a PINN netowrk to gnerate Flow of injected fluids for different mold shapes. </li>
-						</ul>
-					</section>
-					<section>
-						<strong style="font-size:22px">Challanges & Hackathons</strong>
-                        <ul>
-						</ul>
-					</section>
-					<section>
-						<strong style="font-size:22px">Others</strong>
-                        <ul>
-						</ul>
-					</section>
-                </div>
-            </section>
-            
-            <!-- Three -->
-            <section id="four" class="wrapper style2 fullscreen fade-up">
-                <div class="inner">
-                    <h2>Get in touch</h2>
-                    <p>For collaborations, please feel free to contact.</p>
-                    <div class="split style2">
-                        <section>
-                            <img src="images/photo.jpeg" alt="Profile photo of Lala Shakti Swarup Ray" style="width: 90%">
-                        </section>
-                        <section>
-                            <ul class="contact">
-                                <li>
-                                    <h3>Address</h3>
-                                    <p>Kaiserslautern, Rhineland-Palatinate<br />Germany (67663)</p>
-                                </li>
-                                <li>
-                                    <h3>Email</h3>
-                                    <a href="mailto:lara01@dfki.de">lala_shakti_swarup.ray@dfki.de</a><br>
-                                    <a href="mailto:lalashakti96@gmail.com">lalashakti96@gmail.com</a>
-                                </li>
-                                <li>
-                                    <h3>Phone</h3>
-                                    <span>+49 15901929013</span>
-                                </li>
-                                <li>
-                                    <h3>Social</h3>
-                                    <ul class="icons">
-                                        <li><a href="https://github.com/lalasray" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
-                                        <li><a href="https://www.linkedin.com/in/lala-shakti-swarup-ray/" class="icon brands fa-linkedin-in"><span class="label">LinkedIn</span></a></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </section>
-                    </div>
-                </div>
-            </section>
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 
-        </div>
-
-        <!-- Footer -->
-        <footer id="footer" class="wrapper style1-alt">
-            <div class="inner">
-                <ul class="menu">
-                    <li>&copy; All rights reserved.</li><li>Design: <a href="#">Lala Ray</a></li>
-                </ul>
-            </div>
-        </footer>
-
-        <!-- Scripts -->
-        <script src="assets/js/jquery.min.js"></script>
-        <script src="assets/js/jquery.scrollex.min.js"></script>
-        <script src="assets/js/jquery.scrolly.min.js"></script>
-        <script src="assets/js/browser.min.js"></script>
-        <script src="assets/js/breakpoints.min.js"></script>
-        <script src="assets/js/util.js"></script>
-        <script src="assets/js/main.js"></script>
-    </body>
+    function animate() {
+      requestAnimationFrame(animate);
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
 </html>
