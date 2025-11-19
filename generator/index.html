@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Working Time Sheet Generator (Germany)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color-scheme: light dark;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top left, #e0f2fe, #f9fafb);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .app {
+      max-width: 900px;
+      width: 100%;
+      margin: 32px;
+      padding: 24px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(14px);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.75rem;
+      letter-spacing: 0.03em;
+    }
+
+    p.subtitle {
+      margin-top: 4px;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+
+    .card {
+      border-radius: 16px;
+      padding: 16px 18px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      margin-top: 18px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #0f172a;
+    }
+
+    input[type="date"],
+    textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #cbd5f5;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      resize: vertical;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      min-height: 140px;
+      line-height: 1.4;
+    }
+
+    small {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .row > div {
+      flex: 1;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.2s ease;
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: white;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+    }
+
+    button.secondary {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    button:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.22);
+    }
+
+    #output {
+      width: 100%;
+      min-height: 220px;
+      white-space: pre;
+      border-radius: 10px;
+      border: 1px solid #cbd5f5;
+      padding: 8px 10px;
+      font-family: monospace;
+      box-sizing: border-box;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .status {
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    .status.error {
+      color: #b91c1c;
+    }
+
+    .footer {
+      margin-top: 18px;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Working Time Sheet Generator</h1>
+      <p class="subtitle">
+        Generates one CSV-style line per day between two dates, with random realistic hours
+        for standard days, and support for vacations, flextime, sick leave,
+        and German official holidays.
+      </p>
+    </header>
+
+    <section class="card">
+      <h2>1. Settings</h2>
+
+      <div class="row">
+        <div>
+          <label for="startDate">Start date</label>
+          <input type="date" id="startDate" />
+        </div>
+        <div>
+          <label for="endDate">End date</label>
+          <input type="date" id="endDate" />
+        </div>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <label for="vacationDays">Special days (vacation / flextime / sick leave)</label>
+        <textarea id="vacationDays" placeholder="One rule per line. Examples:
+2025-08-12;vacation full day
+2025-08-13;vacation half day
+2025-09-01..2025-09-05;arbeitszeitausgleich full day
+2025-10-10;sick leave"></textarea>
+        <small>
+          Format per line:
+          <code>YYYY-MM-DD;type</code> for a single day, or
+          <code>YYYY-MM-DD..YYYY-MM-DD;type</code> for an interval.<br>
+          The <code>type</code> text is used directly as <code>Art</code>
+          (e.g. <code>vacation full day</code>, <code>arbeitszeitausgleich half day</code>, <code>sick leave</code>).
+        </small>
+      </div>
+
+      <div class="button-row">
+        <button id="generateBtn" class="primary">
+          ▶ Generate
+        </button>
+        <button id="downloadBtn" class="secondary" disabled>
+          ⬇ Download CSV
+        </button>
+      </div>
+
+      <div id="status" class="status"></div>
+    </section>
+
+    <section class="card" style="margin-top: 18px;">
+      <h2>
+        2. Output
+        <span class="pill"><span id="dayCount">0</span> days in interval</span>
+      </h2>
+      <textarea id="output" readonly placeholder="Generated CSV output will appear here..."></textarea>
+    </section>
+
+    <footer class="footer">
+      Header: <code>Datum;Beginn;Ende;Pause;Art</code>. Weekends are <code>weekend</code>,
+      German official holidays are <code>official holiday</code>, other days default to <code>standard day</code>
+      with random start (08:00–11:00), ~8h presence, and 30–60min break.
+    </footer>
+  </main>
+
+  <script>
+    const startDateInput = document.getElementById("startDate");
+    const endDateInput = document.getElementById("endDate");
+    const vacationInput = document.getElementById("vacationDays");
+    const generateBtn = document.getElementById("generateBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const output = document.getElementById("output");
+    const statusEl = document.getElementById("status");
+    const dayCountEl = document.getElementById("dayCount");
+
+    // Helper: parse YYYY-MM-DD to Date
+    function parseLocalDate(str) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str);
+      if (!m) return null;
+      const year = Number(m[1]);
+      const month = Number(m[2]) - 1;
+      const day = Number(m[3]);
+      return new Date(year, month, day);
+    }
+
+    function formatDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function getYearRange(start, end) {
+      const years = [];
+      for (let y = start.getFullYear(); y <= end.getFullYear(); y++) {
+        years.push(y);
+      }
+      return years;
+    }
+
+    // Random helpers
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function pad2(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function minutesToHHMM(minutesFromMidnight) {
+      const h = Math.floor(minutesFromMidnight / 60);
+      const m = minutesFromMidnight % 60;
+      return pad2(h) + ":" + pad2(m);
+    }
+
+    // Generate random realistic schedule for one standard work day
+    function generateRandomDayTimes() {
+      const startMinutes = randomInt(8 * 60, 11 * 60);          // 08:00–11:00
+      const workMinutes = randomInt(7.5 * 60, 8.5 * 60);        // 450–510
+      const breakMinutes = randomInt(30, 60);                   // 30–60
+
+      const presenceMinutes = workMinutes + breakMinutes;
+
+      const maxFirstBlock = 5 * 60;  // 5h
+      let earliestBreakStart = 3 * 60; // at least ~3h after start
+      let latestBreakStart = Math.min(maxFirstBlock, presenceMinutes - 3 * 60); // leave ≥3h after break
+
+      if (latestBreakStart < earliestBreakStart) {
+        earliestBreakStart = Math.max(60, latestBreakStart - 60);
+      }
+
+      const breakStartOffset = randomInt(earliestBreakStart, latestBreakStart);
+      const endOffset = presenceMinutes;
+
+      const startAbs = startMinutes;
+      const endAbs = startMinutes + endOffset;
+
+      return {
+        startStr: minutesToHHMM(startAbs),
+        endStr: minutesToHHMM(endAbs),
+        breakMinutes: breakMinutes
+      };
+    }
+
+    // Fetch holidays from https://get.api-feiertage.de (nationwide only)
+    async function fetchGermanHolidays(years) {
+      const holidaySet = new Set();
+
+      for (const year of years) {
+        const url = `https://get.api-feiertage.de?years=${year}&all_states=1`;
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`Holiday API error for year ${year}: HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        if (!data || !Array.isArray(data.FEIERTAGE)) continue;
+        for (const h of data.FEIERTAGE) {
+          const dateStr = h.date || h.datum;
+          if (dateStr) {
+            holidaySet.add(dateStr);
+          }
+        }
+      }
+
+      return holidaySet;
+    }
+
+    // Parse special days:
+    // 2025-08-12;vacation full day
+    // 2025-09-01..2025-09-05;arbeitszeitausgleich full day
+    function parseSpecialDays(text) {
+      const map = new Map();
+      const lines = text.split(/\r?\n/);
+
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (!line) continue;
+
+        const parts = line.split(";");
+        const rangePart = parts[0].trim();
+        const typePart = (parts[1] || "vacation full day").trim();
+
+        if (!rangePart) continue;
+
+        if (rangePart.includes("..")) {
+          const [startStr, endStr] = rangePart.split("..").map(s => s.trim());
+          const startDate = parseLocalDate(startStr);
+          const endDate = parseLocalDate(endStr);
+          if (!startDate || !endDate) continue;
+
+          let d = new Date(startDate.getTime());
+          while (d <= endDate) {
+            map.set(formatDate(d), typePart);
+            d.setDate(d.getDate() + 1);
+          }
+        } else {
+          const d = parseLocalDate(rangePart);
+          if (!d) continue;
+          map.set(formatDate(d), typePart);
+        }
+      }
+
+      return map;
+    }
+
+    function isWeekend(date) {
+      const day = date.getDay(); // 0 = Sun, 6 = Sat
+      return day === 0 || day === 6;
+    }
+
+    async function generateOutput() {
+      statusEl.textContent = "";
+      statusEl.classList.remove("error");
+      downloadBtn.disabled = true;
+      output.value = "";
+      dayCountEl.textContent = "0";
+
+      const startStr = startDateInput.value;
+      const endStr = endDateInput.value;
+
+      if (!startStr || !endStr) {
+        statusEl.textContent = "Please select both a start and an end date.";
+        statusEl.classList.add("error");
+        return;
+      }
+
+      let start = parseLocalDate(startStr);
+      let end = parseLocalDate(endStr);
+
+      if (!start || !end) {
+        statusEl.textContent = "Invalid date format.";
+        statusEl.classList.add("error");
+        return;
+      }
+
+      if (end < start) {
+        [start, end] = [end, start];
+      }
+
+      const specialDays = parseSpecialDays(vacationInput.value);
+
+      const years = getYearRange(start, end);
+      statusEl.textContent = "Fetching German public holidays...";
+      generateBtn.disabled = true;
+
+      let holidays;
+      try {
+        holidays = await fetchGermanHolidays(years);
+      } catch (err) {
+        statusEl.textContent =
+          "Could not fetch holidays. Check your internet connection or try again.";
+        statusEl.classList.add("error");
+        generateBtn.disabled = false;
+        return;
+      }
+
+      const lines = [];
+      let current = new Date(start.getTime());
+      let countDays = 0;
+
+      // Header: matches your Excel template
+      lines.push("Datum;Beginn;Ende;Pause;Art");
+
+      while (current <= end) {
+        const dateStr = formatDate(current);
+        const isHol = holidays.has(dateStr);
+        const specialType = specialDays.get(dateStr) || null;
+        const weekend = isWeekend(current);
+
+        let timeBegin = "";
+        let timeEnd = "";
+        let breakMinutes = "";
+        let typeText = "";
+
+        if (isHol) {
+          typeText = "official holiday"; // overrides everything
+        } else if (specialType) {
+          typeText = specialType;
+        } else if (weekend) {
+          typeText = "weekend";
+        } else {
+          const t = generateRandomDayTimes();
+          timeBegin = t.startStr;
+          timeEnd = t.endStr;
+          breakMinutes = String(t.breakMinutes);
+          typeText = "standard day";
+        }
+
+        lines.push(
+          `${dateStr};${timeBegin};${timeEnd};${breakMinutes};${typeText}`
+        );
+
+        countDays++;
+        current.setDate(current.getDate() + 1);
+      }
+
+      dayCountEl.textContent = String(countDays);
+      output.value = lines.join("\n");
+      generateBtn.disabled = false;
+
+      if (countDays > 0) {
+        downloadBtn.disabled = false;
+        statusEl.textContent =
+          `Generated ${countDays} lines. Save as CSV and open in Excel (separator = semicolon).`;
+        statusEl.classList.remove("error");
+      }
+    }
+
+    function downloadCsv() {
+      const text = output.value || "";
+      if (!text.trim()) return;
+
+      // Add UTF-8 BOM so Excel handles encoding nicely
+      const csvContent = "\uFEFF" + text;
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "arbeitszeiterfassung.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    generateBtn.addEventListener("click", () => {
+      generateOutput();
+    });
+
+    downloadBtn.addEventListener("click", () => {
+      downloadCsv();
+    });
+
+    (function setDefaultDates() {
+      const today = new Date();
+      const in30 = new Date();
+      in30.setDate(today.getDate() + 30);
+      startDateInput.value = formatDate(today);
+      endDateInput.value = formatDate(in30);
+    })();
+  </script>
+</body>
+</html>
