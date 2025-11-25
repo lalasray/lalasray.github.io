@@ -3,7 +3,12 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export default function initScene(containerId) {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container) {
+    console.error('Container not found:', containerId);
+    return;
+  }
+
+  console.log('Initializing scene...');
 
   // Scene setup
   const scene = new THREE.Scene();
@@ -243,16 +248,7 @@ export default function initScene(containerId) {
     t += 0.016;
 
     // Character animation - play model animations if available
-    if (character.userData.mixer) {
-      character.userData.mixer.update(0.016);
-      // If no animations are playing, start the first one (usually idle)
-      if (character.userData.actions && character.userData.actions.length > 0) {
-        if (!character.userData.currentAction) {
-          character.userData.currentAction = character.userData.actions[0];
-          character.userData.currentAction.play();
-        }
-      }
-    }
+    // (removed - character model no longer loaded)
 
     // File pickup animation
     if (pickupAnimation.active) {
