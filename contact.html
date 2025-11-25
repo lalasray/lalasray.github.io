@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contact — Your Name</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div id="canvas-container"></div>
+    <header class="site-header">
+      <nav class="nav">
+        <a class="nav__brand" href="/">Your Name — 3D CV</a>
+        <div class="nav__links">
+          <a href="/experience.html">Experience</a>
+          <a href="/research.html">Research</a>
+          <a href="/papers.html">Papers</a>
+          <a href="/contact.html">Contact</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="page">
+      <article class="card">
+        <h1>Contact</h1>
+        <p class="muted">Ways to reach me — placeholders below.</p>
+
+        <section>
+          <h2>Email</h2>
+          <p><a href="mailto:you@example.com">you@example.com</a></p>
+        </section>
+
+        <section>
+          <h2>GitHub</h2>
+          <p><a href="https://github.com/yourhandle" target="_blank" rel="noopener">github.com/yourhandle</a></p>
+        </section>
+
+        <section>
+          <h2>Other</h2>
+          <p>Links to social, portfolio or scheduling tools.</p>
+        </section>
+      </article>
+    </main>
+
+    <script type="module">
+      import initScene from './js/scene.js';
+      initScene('canvas-container');
+    </script>
+  </body>
+</html>
