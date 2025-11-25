@@ -77,6 +77,54 @@ export default function initScene(containerId = 'canvas-container'){
   }
   window.addEventListener('pointermove', onPointerMove);
 
+  // Scroll-driven params
+  let maxScroll = Math.max(1, document.body.scrollHeight - window.innerHeight);
+  function recalcScroll(){ maxScroll = Math.max(1, document.body.scrollHeight - window.innerHeight); }
+  window.addEventListener('resize', recalcScroll);
+
+  // Theme colors per section id
+  const themeMap = {
+    experience: new THREE.Color(0x60a5fa), // blue
+    research: new THREE.Color(0x34d399), // teal
+    papers: new THREE.Color(0xa78bfa), // purple
+    contact: new THREE.Color(0xf59e0b), // amber
+    default: new THREE.Color(0x60a5fa)
+  };
+  let currentTheme = themeMap.default.clone();
+  let targetTheme = themeMap.default.clone();
+
+  // helper to set target theme by section id
+  function setThemeForSection(id){
+    targetTheme = (themeMap[id] || themeMap.default).clone();
+  }
+
+  // Section-based theme switching (scrollspy for themes)
+  const sections = Array.from(document.querySelectorAll('section[id]'));
+  let lastSection = null;
+  function onScrollTheme(){
+    const offset = window.scrollY + window.innerHeight * 0.35;
+    let current = '';
+    for (const s of sections) if (s.offsetTop <= offset) current = s.id;
+    if (current !== lastSection){
+      lastSection = current;
+      setThemeForSection(current);
+    }
+  }
+  window.addEventListener('scroll', onScrollTheme, { passive: true });
+  onScrollTheme();
+
+  // Click / pointerdown interaction: pulse avatar and spin ring
+  let pulse = { value: 1, target: 1 };
+  function onPointerDown(e){
+    pulse.target = 1.45;
+    ring.rotation.z += 0.4;
+    // small temporary emissive flash
+    icoMat.emissive = icoMat.emissive || new THREE.Color(0x000000);
+    icoMat.emissive.setHex(0x1e293b);
+    setTimeout(()=>{ if(icoMat) icoMat.emissive.setHex(0x000000); }, 160);
+  }
+  window.addEventListener('pointerdown', onPointerDown);
+
   function onWindowResize(){
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -89,10 +137,34 @@ export default function initScene(containerId = 'canvas-container'){
   function animate(){
     rafId = requestAnimationFrame(animate);
     t += 0.01;
+
+    // Idle + pointer influence
     avatar.rotation.y += 0.0025 + pointer.x * 0.01;
     avatar.rotation.x = -pointer.y * 0.15 + Math.sin(t) * 0.02;
     avatar.position.y = Math.sin(t * 0.8) * 0.02;
-    points.rotation.y += 0.0009;
+
+    // Smooth pulse
+    pulse.value += (pulse.target - pulse.value) * 0.14;
+    if (Math.abs(pulse.target - pulse.value) < 0.01) pulse.target = 1;
+    avatar.scale.setScalar(pulse.value);
+
+    // Scroll-driven camera/parallax
+    const scrollY = window.scrollY || window.pageYOffset || 0;
+    const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
+    // map progress -> camera position and avatar scale
+    camera.position.z = THREE.MathUtils.lerp(2.6, 1.6, progress);
+    camera.position.y = THREE.MathUtils.lerp(0.8, -0.2, progress);
+    const s = THREE.MathUtils.lerp(1, 1.12, progress);
+    avatar.scale.setScalar(s * pulse.value);
+
+    // Animate theme color towards targetTheme
+    currentTheme.lerp(targetTheme, 0.03);
+    icoMat.color.lerp(currentTheme, 0.06);
+    pMat.color.lerp(currentTheme, 0.02);
+
+    points.rotation.y += 0.0009 + progress * 0.002;
+    ring.rotation.y += 0.0006 + progress * 0.001;
+
     controls.update();
     renderer.render(scene, camera);
   }
@@ -102,6 +174,9 @@ export default function initScene(containerId = 'canvas-container'){
     cancelAnimationFrame(rafId);
     window.removeEventListener('resize', onWindowResize);
     window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerdown', onPointerDown);
+    window.removeEventListener('resize', recalcScroll);
+    window.removeEventListener('scroll', onScrollTheme);
     controls.dispose();
     renderer.dispose();
     if(renderer.domElement && renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
