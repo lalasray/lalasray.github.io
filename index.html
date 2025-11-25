@@ -3,49 +3,164 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Your Name — Portfolio</title>
+    <title>Your Name — 3D CV</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
+    <div id="top"></div>
     <div id="canvas-container" aria-hidden="false"></div>
 
-    <aside class="profile">
-      <header class="profile__header">
-        <h1>Your Name</h1>
-        <p class="muted">3D Portfolio • Frontend & Interactive</p>
-      </header>
+    <header class="site-header" role="banner">
+      <nav class="nav" role="navigation" aria-label="Primary">
+        <a class="nav__brand" href="#top">Your Name — 3D CV</a>
+        <div class="nav__links">
+          <a href="#experience">Experience</a>
+          <a href="#research">Research</a>
+          <a href="#papers">Papers</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </nav>
+    </header>
 
-      <section class="profile__section about">
-        <h2>About</h2>
-        <p>
-          Hi — I'm Your Name. I build interactive 3D web experiences and visual
-          interfaces. This is a placeholder profile — replace text, links and
-          images with your content.
-        </p>
+    <main class="site-main" role="main">
+      <section class="hero" id="hero">
+        <div class="hero__inner">
+          <h1>Your Name</h1>
+          <p class="muted">3D Portfolio • Frontend & Interactive</p>
+          <p>
+            Hi — I'm Your Name. I build interactive 3D web experiences and visual interfaces.
+          </p>
+          <p class="hero__actions">
+            <a class="btn" href="#experience">Experience</a>
+            <a class="btn" href="#research">Research</a>
+          </p>
+        </div>
       </section>
 
-      <section class="profile__section projects">
-        <h2>Projects</h2>
-        <ul>
-          <li><strong>Project One</strong> — Short placeholder description.</li>
-          <li><strong>Project Two</strong> — Short placeholder description.</li>
-          <li><strong>Project Three</strong> — Short placeholder description.</li>
-        </ul>
+      <section id="experience" class="page-section">
+        <div class="card">
+          <h2>Experience</h2>
+          <p class="muted">A one-page overview of work experience — placeholders.</p>
+
+          <article>
+            <h3>Position — Company</h3>
+            <p><em>Dates: 20XX — Present</em></p>
+            <p>Short description of responsibilities and accomplishments. Replace with your content.</p>
+          </article>
+
+          <article>
+            <h3>Position — Company</h3>
+            <p><em>Dates: 20XX — 20XX</em></p>
+            <p>Short description of responsibilities and accomplishments. Replace with your content.</p>
+          </article>
+
+          <article>
+            <h3>Skills</h3>
+            <p>Three.js, WebGL, React, TypeScript, Visualization, UX</p>
+          </article>
+        </div>
       </section>
 
-      <section class="profile__section contact">
-        <h2>Contact</h2>
-        <p>Email: <a href="mailto:you@example.com">you@example.com</a></p>
-        <p>GitHub: <a href="https://github.com/yourhandle" target="_blank" rel="noopener">github.com/yourhandle</a></p>
+      <section id="research" class="page-section">
+        <div class="card">
+          <h2>Research</h2>
+          <p class="muted">Summary of research projects and interests — placeholders.</p>
+
+          <article>
+            <h3>Project Title</h3>
+            <p>Short summary of the research project, methods, and outcomes.</p>
+          </article>
+
+          <article>
+            <h3>Project Title</h3>
+            <p>Short summary of the research project, methods, and outcomes.</p>
+          </article>
+        </div>
       </section>
 
-      <footer class="profile__footer muted">Built with Three.js — placeholders included</footer>
-    </aside>
+      <section id="papers" class="page-section">
+        <div class="card">
+          <h2>Papers</h2>
+          <p class="muted">List of papers, preprints, and links — placeholders below.</p>
+
+          <ol>
+            <li>
+              <strong>Paper Title</strong> — Conference / Journal (Year)
+              <p>Short description or abstract snippet.</p>
+            </li>
+            <li>
+              <strong>Paper Title</strong> — Conference / Journal (Year)
+              <p>Short description or abstract snippet.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="contact" class="page-section">
+        <div class="card">
+          <h2>Contact</h2>
+          <p class="muted">Ways to reach me — placeholders below.</p>
+
+          <section>
+            <h3>Email</h3>
+            <p><a href="mailto:you@example.com">you@example.com</a></p>
+          </section>
+
+          <section>
+            <h3>GitHub</h3>
+            <p><a href="https://github.com/yourhandle" target="_blank" rel="noopener">github.com/yourhandle</a></p>
+          </section>
+
+          <section>
+            <h3>Other</h3>
+            <p>Links to social, portfolio or scheduling tools.</p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="card muted">Built with Three.js — placeholders included</div>
+    </footer>
 
     <noscript>
       <p style="color:#fff; padding:1rem; background:#b00;">This site requires JavaScript.</p>
     </noscript>
 
-    <script type="module" src="js/main.js"></script>
+    <script type="module">
+      import initScene from './js/scene.js';
+      // start the shared 3D background
+      initScene('canvas-container');
+
+      // Smooth scrolling for in-page anchors
+      document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', (e) => {
+          const href = a.getAttribute('href');
+          if (!href || href === '#') return;
+          if (href.startsWith('#')) {
+            e.preventDefault();
+            const id = href.slice(1);
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+
+      // Simple scrollspy to highlight nav links
+      const sections = Array.from(document.querySelectorAll('section[id]'));
+      const links = Array.from(document.querySelectorAll('.nav__links a'));
+
+      function onScroll(){
+        const offset = window.scrollY + 140;
+        let current = sections[0]?.id || '';
+        for (const s of sections) {
+          if (s.offsetTop <= offset) current = s.id;
+        }
+        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + current));
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    </script>
   </body>
 </html>
