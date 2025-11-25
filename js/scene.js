@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 
 export default function initScene(containerId) {
   const container = document.getElementById(containerId);
@@ -31,6 +34,20 @@ export default function initScene(containerId) {
   controls.dampingFactor = 0.05;
   controls.autoRotate = false;
   controls.target.set(0, 1, 0);
+
+  // small reusable vector for animations/controls
+  const v0 = new THREE.Vector3();
+
+  // GUI / TransformControls / Stats
+  const conf = {
+    followSphere: true,
+    showTransform: true
+  };
+
+  let transformControls = null;
+  let stats = null;
+  let gui = null;
+  let targetSphere = null;
 
   // Lighting
   const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
@@ -233,6 +250,137 @@ export default function initScene(containerId) {
   const points = new THREE.Points(particles, pMat);
   scene.add(points);
 
+  // Draggable target sphere and UI
+  targetSphere = new THREE.Mesh(
+    new THREE.SphereGeometry(0.05, 16, 16),
+    new THREE.MeshStandardMaterial({ color: 0xffcc00, metalness: 0.6, roughness: 0.2 })
+  );
+  // place it slightly above the desk near the folders (keep its height fixed)
+  targetSphere.position.set(0.6, 1.05, 0.4);
+  const _fixedSphereY = targetSphere.position.y; // clamp Y (height) to this value
+  targetSphere.name = 'target_sphere';
+  targetSphere.castShadow = true;
+  targetSphere.receiveShadow = true;
+  scene.add(targetSphere);
+
+  // TransformControls for dragging the sphere (smaller, styled)
+  transformControls = new TransformControls(camera, renderer.domElement);
+  transformControls.attach(targetSphere);
+  // Force translate-only mode and configure gizmo to allow plane movement (XZ)
+  transformControls.setMode('translate');
+  transformControls.size = 0.45;
+  transformControls.visible = true;
+  // We'll hide individual axis handles and expose the XZ plane only (so movement is always X+Z)
+  transformControls.showX = false;
+  transformControls.showY = false;
+  transformControls.showZ = false;
+  transformControls.addEventListener('dragging-changed', function (event) {
+    controls.enabled = !event.value;
+  });
+  scene.add(transformControls);
+
+  // Tidy up appearance of the gizmo: axis-colored, semi-transparent and subtle
+  try {
+    transformControls.traverse(node => {
+      const name = (node.name || '').toLowerCase();
+
+      // Show only XZ plane handles, hide single-axis handles
+      if (name.includes('x') && !name.includes('xz')) {
+        node.visible = false;
+      }
+      if (name.includes('y') && !name.includes('xy') && !name.includes('yz')) {
+        node.visible = false;
+      }
+      if (name.includes('z') && !name.includes('xz')) {
+        node.visible = false;
+      }
+
+      // If this is the XZ plane handle, make it visible and style it
+      if (name.includes('xz') || name.includes('xzplane') || name.includes('plane')) {
+        node.visible = true;
+        if (node.material && node.material.color) node.material.color.set(0x4d6bff);
+        if (node.material) { node.material.transparent = true; node.material.opacity = 0.45; }
+      }
+
+      // thin out lines
+      if ((node.isLine || node.type === 'LineSegments') && node.material) {
+        node.material.opacity = 0.5;
+        node.material.transparent = true;
+      }
+      // slightly scale down helper meshes for a neater look
+      if (node.isMesh && node.name && node.name.toLowerCase().includes('gizmo')) {
+        node.scale.setScalar(0.9);
+      }
+    });
+  } catch (e) {
+    console.warn('Could not style transformControls:', e);
+  }
+
+  // Highlighting and proximity helpers
+  function clearHighlights() {
+    files.forEach(f => {
+      f.scale.set(1,1,1);
+    });
+  }
+
+  function highlightNearestSphere() {
+    if (!targetSphere) return;
+    let nearest = null;
+    let nd = Infinity;
+    files.forEach(f => {
+      const p = f.userData.basePos || f.position;
+      const d = targetSphere.position.distanceTo(new THREE.Vector3(p.x, p.y, p.z));
+      if (d < nd) { nd = d; nearest = f; }
+    });
+    clearHighlights();
+    if (nearest && nd < 0.35) {
+      nearest.scale.set(1.08,1.08,1.08);
+    }
+    return { nearest, distance: nd };
+  }
+
+  // On object change (while dragging) highlight nearest and clamp Y (height)
+  transformControls.addEventListener('objectChange', () => {
+    // clamp Y so sphere only moves in X/Z plane
+    if (targetSphere) targetSphere.position.y = _fixedSphereY;
+    highlightNearestSphere();
+  });
+
+  // When dragging stops, if sphere is close to a folder, trigger pickup and open modal
+  transformControls.addEventListener('dragging-changed', function (event) {
+    controls.enabled = !event.value;
+    if (!event.value) {
+      // drag ended
+      const res = highlightNearestSphere();
+      if (res && res.nearest && res.distance < 0.35 && !pickupAnimation.active) {
+        // start pickup animation for that file
+        pickupAnimation.file = res.nearest;
+        pickupAnimation.active = true;
+        pickupAnimation.progress = 0;
+        console.log('Sphere dropped on folder, opening:', res.nearest.userData.sectionName);
+      }
+    }
+  });
+
+  // GUI
+  try {
+    gui = new GUI();
+    gui.add(conf, 'followSphere').name('follow sphere');
+    gui.add(conf, 'showTransform').name('show transform').onChange(v => { transformControls.visible = v; });
+    // hide GUI by default (controls window shouldn't be visible)
+    try { gui.domElement.style.display = 'none'; } catch(e) { /* ignore */ }
+  } catch (e) {
+    console.warn('GUI not available:', e);
+  }
+
+  // Stats
+  try {
+    stats = new Stats();
+    document.body.appendChild(stats.dom);
+  } catch (e) {
+    console.warn('Stats not available:', e);
+  }
+
   function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -280,8 +428,16 @@ export default function initScene(containerId) {
     // Rotate particles slowly
     points.rotation.y += 0.0002;
 
+    // If followSphere is enabled, lerp orbit target toward the sphere
+    if (conf.followSphere && targetSphere) {
+      targetSphere.getWorldPosition(v0);
+      controls.target.lerp(v0, 0.1);
+    }
+
     controls.update();
     renderer.render(scene, camera);
+
+    if (stats) stats.update();
   }
   animate();
 
