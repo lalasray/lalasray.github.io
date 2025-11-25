@@ -1,186 +1,338 @@
-// Reusable Three.js scene initializer
-import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-export default function initScene(containerId = 'canvas-container'){
+export default function initScene(containerId) {
   const container = document.getElementById(containerId);
-  if(!container) throw new Error(`Container #${containerId} not found`);
+  if (!container) return;
 
+  // Scene setup
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x071129);
+  scene.background = new THREE.Color(0x0a0a14);
+  scene.fog = new THREE.Fog(0x0a0a14, 15, 100);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 2, 5);
+  camera.lookAt(0, 1, 0);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.domElement.style.display = 'block';
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFShadowShadowMap;
+  renderer.shadowMap.autoUpdate = true;
   container.appendChild(renderer.domElement);
-
-  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.set(0, 0.8, 2.6);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-  controls.enablePan = false;
-  controls.minDistance = 1.2;
-  controls.maxDistance = 6;
+  controls.dampingFactor = 0.05;
+  controls.autoRotate = false;
+  controls.target.set(0, 1, 0);
 
-  // Lights
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
-  hemi.position.set(0, 2, 0);
-  scene.add(hemi);
+  // Lighting
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
+  scene.add(hemiLight);
 
-  const dir = new THREE.DirectionalLight(0xffffff, 0.8);
-  dir.position.set(2, 2, 2);
-  scene.add(dir);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(5, 8, 4);
+  dirLight.castShadow = true;
+  dirLight.shadow.camera.left = -10;
+  dirLight.shadow.camera.right = 10;
+  dirLight.shadow.camera.top = 10;
+  dirLight.shadow.camera.bottom = -10;
+  dirLight.shadow.mapSize.width = 2048;
+  dirLight.shadow.mapSize.height = 2048;
+  scene.add(dirLight);
 
-  // Avatar / placeholder geometry
-  const avatar = new THREE.Group();
-  scene.add(avatar);
+  // Floor
+  const floorGeo = new THREE.PlaneGeometry(20, 20);
+  const floorMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2e, roughness: 0.8 });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
 
-  const icoGeo = new THREE.IcosahedronGeometry(0.65, 4);
-  const icoMat = new THREE.MeshStandardMaterial({ color: 0x60a5fa, metalness: 0.2, roughness: 0.3 });
-  const icosa = new THREE.Mesh(icoGeo, icoMat);
-  avatar.add(icosa);
+  // Realistic Desk/Table
+  const deskGroup = new THREE.Group();
+  deskGroup.position.y = 0;
 
-  const wire = new THREE.Mesh(icoGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, opacity: 0.08, transparent: true }));
-  avatar.add(wire);
+  // Desk top - larger, more realistic
+  const deskTopGeo = new THREE.BoxGeometry(3.5, 0.08, 2.2);
+  const woodMat = new THREE.MeshStandardMaterial({
+    color: 0x8b6f47,
+    roughness: 0.4,
+    metalness: 0.05
+  });
+  const deskTop = new THREE.Mesh(deskTopGeo, woodMat);
+  deskTop.position.y = 0.9;
+  deskTop.castShadow = true;
+  deskTop.receiveShadow = true;
+  deskGroup.add(deskTop);
 
-  const ringGeo = new THREE.TorusGeometry(0.9, 0.02, 16, 80);
-  const ringMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.5, roughness: 0.6 });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = Math.PI / 2;
-  ring.position.y = -0.9;
-  scene.add(ring);
+  // Desk legs - four sturdy legs
+  const legGeo = new THREE.BoxGeometry(0.12, 0.9, 0.12);
+  const legMat = new THREE.MeshStandardMaterial({
+    color: 0x4a4a4a,
+    roughness: 0.6,
+    metalness: 0.2
+  });
 
-  // Particles
+  const legPositions = [[-1.6, 0.45, -1], [1.6, 0.45, -1], [-1.6, 0.45, 1], [1.6, 0.45, 1]];
+  legPositions.forEach(pos => {
+    const leg = new THREE.Mesh(legGeo, legMat);
+    leg.position.set(...pos);
+    leg.castShadow = true;
+    leg.receiveShadow = true;
+    deskGroup.add(leg);
+  });
+
+  // Desk drawer handles (small details)
+  const handleGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8);
+  const handleMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.3, metalness: 0.8 });
+  const handle = new THREE.Mesh(handleGeo, handleMat);
+  handle.rotation.z = Math.PI / 2;
+  handle.position.set(0, 0.95, -1.05);
+  handle.castShadow = true;
+  deskGroup.add(handle);
+
+  scene.add(deskGroup);
+
+  // Realistic folder/document models
+  const files = [];
+  const fileConfig = [
+    { name: 'profile', x: -1.2, z: 0.4, color: 0xe879f9, label: 'Profile' },
+    { name: 'experience', x: -0.3, z: 0.4, color: 0x60a5fa, label: 'Experience' },
+    { name: 'research', x: 0.6, z: 0.4, color: 0x34d399, label: 'Research' },
+    { name: 'papers', x: 1.4, z: 0.4, color: 0xa78bfa, label: 'Papers' },
+    { name: 'contact', x: 0.6, z: -0.5, color: 0xf59e0b, label: 'Contact' }
+  ];
+
+  function createRealisticFolder(name, color) {
+    const group = new THREE.Group();
+
+    // Folder back cover
+    const backGeo = new THREE.BoxGeometry(0.5, 0.6, 0.02);
+    const folderMat = new THREE.MeshStandardMaterial({
+      color: color,
+      roughness: 0.5,
+      metalness: 0.1,
+      emissive: 0x000000
+    });
+    const back = new THREE.Mesh(backGeo, folderMat);
+    back.position.z = -0.01;
+    back.castShadow = true;
+    back.receiveShadow = true;
+    group.add(back);
+
+    // Folder front cover (slightly offset)
+    const front = new THREE.Mesh(backGeo, folderMat);
+    front.position.z = 0.01;
+    front.castShadow = true;
+    front.receiveShadow = true;
+    group.add(front);
+
+    // Folder tab
+    const tabGeo = new THREE.BoxGeometry(0.3, 0.12, 0.02);
+    const tab = new THREE.Mesh(tabGeo, folderMat);
+    tab.position.set(0.05, 0.3, 0.02);
+    tab.castShadow = true;
+    group.add(tab);
+
+    // Label with text on canvas
+    const labelTexture = createCanvasTexture(name.charAt(0).toUpperCase() + name.slice(1), '#' + color.toString(16).padStart(6, '0'));
+    const labelGeo = new THREE.PlaneGeometry(0.4, 0.3);
+    const labelMat = new THREE.MeshBasicMaterial({ map: labelTexture, transparent: true });
+    const label = new THREE.Mesh(labelGeo, labelMat);
+    label.position.z = 0.02;
+    group.add(label);
+
+    return group;
+  }
+
+  function createCanvasTexture(text, color) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Text
+    ctx.fillStyle = color || '#ffffff';
+    ctx.font = 'bold 80px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.magFilter = THREE.LinearFilter;
+    texture.minFilter = THREE.LinearFilter;
+    return texture;
+  }
+
+  fileConfig.forEach(config => {
+    const folder = createRealisticFolder(config.name, config.color);
+    folder.position.set(config.x, 0.98, config.z);
+    folder.castShadow = true;
+    folder.receiveShadow = true;
+    folder.userData.sectionName = config.name;
+    folder.userData.basePos = { x: config.x, y: 0.98, z: config.z };
+    scene.add(folder);
+    files.push(folder);
+  });
+
+  // Raycaster for click detection
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  let selectedFile = null;
+  let pickupAnimation = { active: false, progress: 0, file: null };
+
+  function onMouseClick(e) {
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(files, true);
+
+    console.log('Click at', { clientX: e.clientX, clientY: e.clientY }, 'Intersects:', intersects.length, 'Animation active:', pickupAnimation.active);
+
+    if (intersects.length > 0 && !pickupAnimation.active) {
+      let file = intersects[0].object;
+      while (file.parent && !files.includes(file)) {
+        file = file.parent;
+      }
+      if (files.includes(file)) {
+        selectedFile = file;
+        pickupAnimation.active = true;
+        pickupAnimation.progress = 0;
+        pickupAnimation.file = selectedFile;
+        console.log('Pickup animation started for:', selectedFile.userData.sectionName);
+      }
+    }
+  }
+  window.addEventListener('click', onMouseClick);
+
+  // Particles background
   const particles = new THREE.BufferGeometry();
-  const count = 1400;
+  const count = 600;
   const positions = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
-    const r = 1.6 + Math.random() * 4.0;
+    const r = 6 + Math.random() * 8;
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos((Math.random() * 2) - 1);
     positions[i * 3] = Math.sin(phi) * Math.cos(theta) * r;
-    positions[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * r * 0.6;
+    positions[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * r * 0.5 + 2;
     positions[i * 3 + 2] = Math.cos(phi) * r;
   }
   particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  const pMat = new THREE.PointsMaterial({ color: 0xc7d2fe, size: 0.01, opacity: 0.6, transparent: true });
+  const pMat = new THREE.PointsMaterial({ color: 0xc7d2fe, size: 0.04, opacity: 0.3, transparent: true });
   const points = new THREE.Points(particles, pMat);
   scene.add(points);
 
-  const pointer = { x: 0, y: 0 };
-  function onPointerMove(e){
-    pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
-    pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
-  }
-  window.addEventListener('pointermove', onPointerMove);
-
-  // Scroll-driven params
-  let maxScroll = Math.max(1, document.body.scrollHeight - window.innerHeight);
-  function recalcScroll(){ maxScroll = Math.max(1, document.body.scrollHeight - window.innerHeight); }
-  window.addEventListener('resize', recalcScroll);
-
-  // Theme colors per section id
-  const themeMap = {
-    experience: new THREE.Color(0x60a5fa), // blue
-    research: new THREE.Color(0x34d399), // teal
-    papers: new THREE.Color(0xa78bfa), // purple
-    contact: new THREE.Color(0xf59e0b), // amber
-    default: new THREE.Color(0x60a5fa)
-  };
-  let currentTheme = themeMap.default.clone();
-  let targetTheme = themeMap.default.clone();
-
-  // helper to set target theme by section id
-  function setThemeForSection(id){
-    targetTheme = (themeMap[id] || themeMap.default).clone();
-  }
-
-  // Section-based theme switching (scrollspy for themes)
-  const sections = Array.from(document.querySelectorAll('section[id]'));
-  let lastSection = null;
-  function onScrollTheme(){
-    const offset = window.scrollY + window.innerHeight * 0.35;
-    let current = '';
-    for (const s of sections) if (s.offsetTop <= offset) current = s.id;
-    if (current !== lastSection){
-      lastSection = current;
-      setThemeForSection(current);
-    }
-  }
-  window.addEventListener('scroll', onScrollTheme, { passive: true });
-  onScrollTheme();
-
-  // Click / pointerdown interaction: pulse avatar and spin ring
-  let pulse = { value: 1, target: 1 };
-  function onPointerDown(e){
-    pulse.target = 1.45;
-    ring.rotation.z += 0.4;
-    // small temporary emissive flash
-    icoMat.emissive = icoMat.emissive || new THREE.Color(0x000000);
-    icoMat.emissive.setHex(0x1e293b);
-    setTimeout(()=>{ if(icoMat) icoMat.emissive.setHex(0x000000); }, 160);
-  }
-  window.addEventListener('pointerdown', onPointerDown);
-
-  function onWindowResize(){
+  function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   }
   window.addEventListener('resize', onWindowResize);
 
+  // Animation loop
   let t = 0;
   let rafId = null;
-  function animate(){
+  function animate() {
     rafId = requestAnimationFrame(animate);
-    t += 0.01;
+    t += 0.016;
 
-    // Idle + pointer influence
-    avatar.rotation.y += 0.0025 + pointer.x * 0.01;
-    avatar.rotation.x = -pointer.y * 0.15 + Math.sin(t) * 0.02;
-    avatar.position.y = Math.sin(t * 0.8) * 0.02;
+    // Character animation - play model animations if available
+    if (character.userData.mixer) {
+      character.userData.mixer.update(0.016);
+      // If no animations are playing, start the first one (usually idle)
+      if (character.userData.actions && character.userData.actions.length > 0) {
+        if (!character.userData.currentAction) {
+          character.userData.currentAction = character.userData.actions[0];
+          character.userData.currentAction.play();
+        }
+      }
+    }
 
-    // Smooth pulse
-    pulse.value += (pulse.target - pulse.value) * 0.14;
-    if (Math.abs(pulse.target - pulse.value) < 0.01) pulse.target = 1;
-    avatar.scale.setScalar(pulse.value);
+    // File pickup animation
+    if (pickupAnimation.active) {
+      pickupAnimation.progress = Math.min(1, pickupAnimation.progress + 0.05);
+      const file = pickupAnimation.file;
+      const base = file.userData.basePos;
 
-    // Scroll-driven camera/parallax
-    const scrollY = window.scrollY || window.pageYOffset || 0;
-    const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
-    // map progress -> camera position and avatar scale
-    camera.position.z = THREE.MathUtils.lerp(2.6, 1.6, progress);
-    camera.position.y = THREE.MathUtils.lerp(0.8, -0.2, progress);
-    const s = THREE.MathUtils.lerp(1, 1.12, progress);
-    avatar.scale.setScalar(s * pulse.value);
+      // Animate file upward and rotate
+      const pickupHeight = 2.5;
+      file.position.y = base.y + pickupAnimation.progress * (pickupHeight - base.y);
+      file.rotation.x += 0.08;
+      file.rotation.y += 0.12;
 
-    // Animate theme color towards targetTheme
-    currentTheme.lerp(targetTheme, 0.03);
-    icoMat.color.lerp(currentTheme, 0.06);
-    pMat.color.lerp(currentTheme, 0.02);
+      // When animation complete, trigger modal
+      if (pickupAnimation.progress >= 1) {
+        pickupAnimation.active = false;
+        const modal = document.getElementById('content-modal');
+        if (modal) {
+          const sectionName = file.userData.sectionName;
+          window.showModal(sectionName);
+          setTimeout(() => {
+            file.position.set(base.x, base.y, base.z);
+            file.rotation.set(0, 0, 0);
+          }, 200);
+        }
+      }
+    }
 
-    points.rotation.y += 0.0009 + progress * 0.002;
-    ring.rotation.y += 0.0006 + progress * 0.001;
+    // Rotate particles slowly
+    points.rotation.y += 0.0002;
 
     controls.update();
     renderer.render(scene, camera);
   }
   animate();
 
-  function destroy(){
+  function destroy() {
     cancelAnimationFrame(rafId);
     window.removeEventListener('resize', onWindowResize);
-    window.removeEventListener('pointermove', onPointerMove);
-    window.removeEventListener('pointerdown', onPointerDown);
-    window.removeEventListener('resize', recalcScroll);
-    window.removeEventListener('scroll', onScrollTheme);
+    window.removeEventListener('click', onMouseClick);
     controls.dispose();
     renderer.dispose();
-    if(renderer.domElement && renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+    if (renderer.domElement && renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
   }
 
   return { scene, camera, renderer, controls, destroy };
 }
+
+// Modal management
+function showModal(sectionName) {
+  const modal = document.getElementById('content-modal');
+  const title = document.getElementById('modal-title');
+  const content = document.getElementById('modal-content');
+
+  const sectionMap = {
+    profile: { title: 'Your Profile', id: 'profile' },
+    experience: { title: 'Experience', id: 'experience' },
+    research: { title: 'Research', id: 'research' },
+    papers: { title: 'Papers', id: 'papers' },
+    contact: { title: 'Contact', id: 'contact' }
+  };
+
+  const section = sectionMap[sectionName];
+  if (!section) return;
+
+  title.textContent = section.title;
+
+  const pageSection = document.getElementById(section.id);
+  if (pageSection) {
+    const heroInner = pageSection.querySelector('.hero__inner') || pageSection.querySelector('.card');
+    if (heroInner) content.innerHTML = heroInner.innerHTML;
+  }
+
+  modal.classList.add('active');
+}
+
+function closeModal() {
+  const modal = document.getElementById('content-modal');
+  modal.classList.remove('active');
+}
+
+window.showModal = showModal;
+window.closeModal = closeModal;

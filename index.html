@@ -31,7 +31,7 @@
     </header>
 
     <main class="site-main" role="main">
-      <section class="hero" id="hero">
+      <section class="hero" id="profile">
         <div class="hero__inner">
           <h1>Your Name</h1>
           <p class="muted">3D Portfolio • Frontend & Interactive</p>
@@ -197,3 +197,15 @@
     </script>
   </body>
 </html>
+
+    <!-- Content Modal -->
+    <div id="content-modal" class="modal">
+      <div class="modal__overlay" onclick="window.closeModal()"></div>
+      <div class="modal__content">
+        <div class="modal__header">
+          <h2 id="modal-title">Section</h2>
+          <button class="modal__close" onclick="window.closeModal()">&times;</button>
+        </div>
+        <div id="modal-content" class="modal__body"></div>
+      </div>
+    </div>
